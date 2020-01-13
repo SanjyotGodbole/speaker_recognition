@@ -133,3 +133,4 @@ dmypy.json
 *.csv
 *.xls
 *.xlsx
+*.png

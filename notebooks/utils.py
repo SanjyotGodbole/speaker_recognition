@@ -11,7 +11,7 @@ import soundfile as sf
 from tqdm import tqdm_notebook as tqdm
 import torch.nn.functional as F
 from fastai.basic_data import DatasetType
-
+import matplotlib.pyplot as plt
 
 def read_file(filename, path='', sample_rate=None, trim=False):
     ''' Reads in a wav file and returns it as an np.float32 array in the range [-1,1] '''
@@ -94,6 +94,23 @@ def convert_to_mono(src_path, dst_path, processes=None):
         with tqdm(total=len(filenames), unit='files') as pbar:
             for _ in pool.imap_unordered(convert_fn, filenames):
                 pbar.update()
+
+def log_mel_spec_tfm(fname, src_path, dst_path):
+    x, sample_rate = read_file(fname, src_path)
+    
+    n_fft = 1024
+    hop_length = 256
+    n_mels = 40
+    fmin = 20
+    fmax = sample_rate / 2 
+    
+    mel_spec_power = librosa.feature.melspectrogram(x, sr=sample_rate, n_fft=n_fft, 
+                                                    hop_length=hop_length, 
+                                                    n_mels=n_mels, power=2.0, 
+                                                    fmin=fmin, fmax=fmax)
+    mel_spec_db = librosa.power_to_db(mel_spec_power, ref=np.max)
+    dst_fname = dst_path / (fname[:-4] + '.png')
+    plt.imsave(dst_fname, mel_spec_db)
                 
                 
 def transform_path(src_path, dst_path, transform_fn, fnames=None, processes=None, delete=False, **kwargs):
